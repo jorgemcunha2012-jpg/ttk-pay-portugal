@@ -1,0 +1,72 @@
+/* Modal final — estava inline em index.html */
+#final-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Arial', sans-serif;
+}
+
+#final-modal.active {
+  display: flex;
+}
+
+#final-modal .modal-content.final-content {
+  background: linear-gradient(to bottom, #a049f5, #9d4edd);
+  border-radius: 20px;
+  padding: 30px 20px;
+  text-align: center;
+  color: #fff;
+  max-width: 350px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+#final-modal .reward-header {
+  font-size: 18px;
+  font-weight: bold;
+  color: #e0caff;
+  margin-bottom: 10px;
+}
+
+#final-modal .reward-message {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+#final-modal .reward-amount {
+  font-size: 42px;
+  font-weight: bold;
+  color: #ffd700;
+  margin: 10px 0 20px;
+}
+
+#final-modal .reward-info {
+  font-size: 16px;
+  margin-bottom: 25px;
+  color: #fff;
+}
+
+#final-modal .continue-reward-btn {
+  background: #ffffff;
+  color: #000000;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+#final-modal .continue-reward-btn:hover {
+  background: #f0f0f0;
+}

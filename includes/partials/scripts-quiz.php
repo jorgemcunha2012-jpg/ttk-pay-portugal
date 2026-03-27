@@ -1,0 +1,10 @@
+<?php /** @var string $ASSET_BASE */ ?>
+  <script src="checkout/config.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/utils.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/confetti.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/rewards.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/quiz.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/pages.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/notifications.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/tiktok-pixel.js"></script>
+  <script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/app.js"></script>

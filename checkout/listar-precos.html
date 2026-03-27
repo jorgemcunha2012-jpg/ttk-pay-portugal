@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listar Preços Cooud</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; padding: 24px; max-width: 600px; margin: 0 auto; }
+    h1 { margin-bottom: 20px; font-size: 20px; }
+    .token-input { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #ccc; border-radius: 8px; font-family: monospace; }
+    button { padding: 12px 24px; background: #ff2c55; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .result { margin-top: 24px; background: #f5f5f5; padding: 20px; border-radius: 8px; }
+    .price-item { background: white; padding: 16px; margin: 12px 0; border-radius: 8px; border: 1px solid #e0e0e0; }
+    .price-id { font-family: monospace; background: #eee; padding: 8px 12px; border-radius: 4px; font-size: 14px; word-break: break-all; }
+    .price-name { font-weight: 600; margin-bottom: 4px; }
+    .price-amount { color: #666; font-size: 14px; }
+    .copy-btn { margin-top: 8px; padding: 6px 12px; font-size: 12px; background: #4caf50; }
+    .error { background: #ffebee; color: #c62828; padding: 16px; border-radius: 8px; margin-top: 16px; }
+    .loading { color: #666; margin-top: 16px; }
+    .instructions { background: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+  </style>
+  <script src="config.js"></script>
+</head>
+<body>
+  <h1>🔍 Obter IDs dos Preços Cooud</h1>
+  
+  <div class="instructions">
+    <strong>Token:</strong> Sim, cola o token <code>orbit_at_79tvIPxJS5V7lfkAfrnUSHud_ZuzPtkLFf4t-h7er4Q</code> (ou o teu).<br>
+    <strong>Erro 401?</strong> Gera um novo token na Cooud (Integrações > "+ Novo token"). O token antigo pode ter expirado ou sido revogado. Copia-o assim que for criado — só é mostrado uma vez.
+  </div>
+
+  <input type="password" class="token-input" id="token" placeholder="Token orbit_at_..." value="">
+  
+  <button id="btn" onclick="listarPrecos()">Listar preços</button>
+
+  <div id="output"></div>
+
+  <script>
+    const API = 'https://orbit.cooud.com';
+
+    async function listarPrecos() {
+      const token = document.getElementById('token').value.trim();
+      const output = document.getElementById('output');
+      const btn = document.getElementById('btn');
+
+      if (!token) {
+        output.innerHTML = '<div class="error">Introduz o token de acesso.</div>';
+        return;
+      }
+
+      btn.disabled = true;
+      output.innerHTML = '<div class="loading">A carregar...</div>';
+
+      try {
+        // Tentar /stores primeiro (token de store) e depois /user/stores (token de user)
+        let stores = [];
+        let res = await fetch(`${API}/stores`, { 
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'X-Store-Access-Token': token
+          } 
+        });
+        if (res.ok) {
+          const data = await res.json();
+          stores = Array.isArray(data) ? data : (data.data || data.stores || [data] || []);
+        }
+        if (stores.length === 0) {
+          res = await fetch(`${API}/user/stores`, { 
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'X-Store-Access-Token': token
+            } 
+          });
+          if (res.ok) stores = await res.json();
+        }
+        if (!res.ok) {
+          const err = await res.text();
+          throw new Error(res.status === 401 ? 'Token inválido ou expirado. Gera um novo na Cooud > Integrações > Tokens.' : err || 'Erro ' + res.status);
+        }
+        if (!stores || stores.length === 0) {
+          output.innerHTML = '<div class="error">Nenhuma store encontrada.</div>';
+          return;
+        }
+
+        let html = '<div class="result"><h3>Preços encontrados</h3>';
+        let totalPrices = 0;
+
+        for (const store of stores) {
+          const courses = await fetch(`${API}/stores/${store.id}/courses`, {
+            headers: { 
+              'Authorization': `Bearer ${token}`,
+              'X-Store-Access-Token': token
+            }
+          }).then(r => r.ok ? r.json() : []);
+
+          for (const course of courses || []) {
+            const prices = await fetch(`${API}/courses/${course.slug}/prices`, {
+              headers: { 
+                'Authorization': `Bearer ${token}`,
+                'X-Store-Access-Token': token
+              }
+            }).then(r => r.ok ? r.json() : []);
+
+            for (const price of prices || []) {
+              totalPrices++;
+              html += `
+                <div class="price-item">
+                  <div class="price-name">${store.name} → ${course.name}</div>
+                  <div class="price-amount">${price.name || ''} - €${(price.amount || 0) / 100}</div>
+                  <div class="price-id" title="Clica para copiar">${price.id}</div>
+                  <button class="copy-btn" onclick="copyId('${price.id}')">Copiar ID</button>
+                </div>
+              `;
+            }
+          }
+        }
+
+        if (totalPrices === 0) {
+          html += '<p>Nenhum preço encontrado. Cria um produto/curso na dashboard Cooud primeiro.</p>';
+        }
+
+        html += '</div>';
+        output.innerHTML = html;
+      } catch (e) {
+        output.innerHTML = `<div class="error">Erro: ${e.message}. Verifica o token.</div>`;
+      }
+
+      btn.disabled = false;
+    }
+
+    function copyId(id) {
+      navigator.clipboard.writeText(id).then(() => {
+        alert('ID copiado! Cola no config.js em prices: ["' + id + '"]');
+      });
+    }
+
+    // Preencher token do config se existir
+    if (typeof COOUD_CONFIG !== 'undefined' && COOUD_CONFIG.accessToken) {
+      document.getElementById('token').value = COOUD_CONFIG.accessToken;
+    }
+  </script>
+</body>
+</html>

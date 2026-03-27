@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width; initial-scale=1">
+  <title>Obter IDs de Preços - Cooud</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; padding: 24px; max-width: 640px; margin: 0 auto; }
+    h1 { margin-bottom: 16px; font-size: 20px; }
+    .info { background: #e3f2fd; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; line-height: 1.5; }
+    .info code { background: #fff; padding: 2px 6px; border-radius: 4px; }
+    .price { background: #f5f5f5; padding: 16px; margin: 12px 0; border-radius: 8px; border: 1px solid #e0e0e0; }
+    .price-id { font-family: monospace; background: #fff; padding: 8px 12px; border-radius: 4px; font-size: 13px; word-break: break-all; margin: 8px 0; }
+    .copy-btn { padding: 8px 16px; background: #4caf50; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .error { background: #ffebee; color: #c62828; padding: 16px; border-radius: 8px; margin-top: 16px; }
+    .loading { color: #666; margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <h1>Obter IDs de Preços Cooud</h1>
+  <div class="info">
+    Usa o <code>listar-precos.php</code> no teu servidor para obter os IDs corretos.
+    O ID deve ter 26 caracteres (ex: <code>01HXXX...</code>) e não pode conter I, L, O, Q, R, S, W.
+  </div>
+  <div id="output"><div class="loading">A carregar...</div></div>
+
+  <script>
+    fetch('listar-precos.php')
+      .then(r => {
+        if (r.status === 401) return r.json().then(d => { throw new Error(d.error || 'Token inválido'); });
+        return r.json();
+      })
+      .then(data => {
+        const prices = data.prices || [];
+        if (prices.length === 0) {
+          document.getElementById('output').innerHTML = '<div class="error">Nenhum preço encontrado. Cria um produto na dashboard Cooud primeiro. Ou o token pode estar expirado – gera um novo em Integrações > Tokens.</div>';
+          return;
+        }
+        let html = '<p><strong>' + prices.length + ' preço(s) encontrado(s)</strong></p>';
+        prices.forEach(p => {
+          const amount = (p.amount || 0) / 100;
+          html += `
+            <div class="price">
+              <div><strong>${p.name || 'Sem nome'}</strong> – €${amount.toFixed(2)}</div>
+              <div class="price-id" title="Clica para copiar">${p.id}</div>
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('${p.id}'); alert('ID copiado! Cola no config.js em prices: [\"' + p.id + '\"]')">Copiar ID</button>
+            </div>
+          `;
+        });
+        document.getElementById('output').innerHTML = html;
+      })
+      .catch(e => {
+        document.getElementById('output').innerHTML = '<div class="error">' + e.message + '</div>';
+      });
+  </script>
+</body>
+</html>

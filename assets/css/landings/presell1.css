@@ -1,0 +1,306 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #ffffff, #fffafa, #ffecec);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.verification-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 16px;
+    padding: 48px 32px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.icon-container {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background: linear-gradient(135deg, #F43F5E, #f14a66);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(239, 68, 111, 0.3);
+}
+
+.icon-shield {
+    width: 48px;
+    height: 48px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-shield svg {
+    width: 100%;
+    height: 100%;
+}
+
+.icon-letter {
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    line-height: 1;
+}
+
+h1 {
+    color: #000000;
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.description {
+    color: #666666;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.progress-container {
+    margin-bottom: 24px;
+    display: none;
+}
+
+.progress-container.active {
+    display: block;
+}
+
+.progress-bar-wrapper {
+    width: 100%;
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #F43F5E, #f14a66);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px rgba(239, 68, 111, 0.3);
+}
+
+.progress-text {
+    color: #000000;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.verify-button {
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #F43F5E, #f14a66);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(239, 68, 148, 0.4);
+}
+
+.verify-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 111, 0.3);
+}
+
+.verify-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.verify-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.footer-text {
+    color: #999999;
+    font-size: 13px;
+    margin-top: 24px;
+    line-height: 1.5;
+}
+
+.loading-spinner {
+    display: none;
+    width: 48px;
+    height: 48px;
+    color: white;
+}
+
+.loading-spinner.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-spinner svg {
+    width: 100%;
+    height: 100%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.success-icon {
+    display: none;
+    width: 48px;
+    height: 48px;
+}
+
+.success-icon.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.success-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.icon-container.success {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3);
+}
+
+.success-state {
+    display: none;
+}
+
+.success-state.active {
+    display: block;
+}
+
+.success-button {
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.success-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+}
+
+.success-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #F43F5E;
+}
+
+.confetti:nth-child(odd) {
+    background: #22c55e;
+}
+
+.confetti:nth-child(3n) {
+    background: #3b82f6;
+}
+
+.confetti:nth-child(4n) {
+    background: #f59e0b;
+}
+
+.initial-state .progress-container {
+    display: none;
+}
+
+.verifying-state .verify-button {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .verification-card {
+        padding: 32px 24px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .description {
+        font-size: 14px;
+    }
+}
+
+.security-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #F43F5E;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.timer {
+  font-size: 18px;
+  font-weight: bold;
+  color: #F43F5E;
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+@keyframes confettiFall {
+  to {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
