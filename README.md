@@ -1,60 +1,39 @@
 # TikTok Pay Portugal — base do projeto
 
-Funil de landings (quiz + presells), checkout Cooud em PHP e páginas de upsell em `ups/`.
+Funil estático na raiz (`index.html`, `presell*.html`), checkout e APIs em `checkout/*.php`, upsells em `ups/`.
+
+## Entrada principal
+
+- **`index.html`** — Quiz (Vercel / estático). Apache: `.htaccess` usa `DirectoryIndex index.html`.
+- **`presell1.html`** → **`presell2.html`** → **`index.html`** (query string preservada no JS em `assets/js/landings/`).
 
 ## Requisitos
 
-- PHP 7.4+ no servidor (para `index.php`, presells e `checkout/*.php`).
-- Servir a raiz do repositório como document root (ou ajustar caminhos).
+- **Só funil:** qualquer hosting estático.
+- **Checkout Cooud / WayMB:** PHP no servidor para `checkout/*.php`.
 
 ## Estrutura
 
-| Pasta / ficheiro | Função |
+| Ficheiro / pasta | Função |
 |------------------|--------|
-| `index.php` | Quiz principal (composto com `includes/sections/*`) |
-| `presell1.php`, `presell2.php` | Presells com CSS/JS em `assets/` |
-| `index.html`, `presell*.html` | Redirecionam para as versões `.php` (links antigos / hosting só estático parcial) |
-| `assets/css/` | Folhas de estilo (`landings/`, `components/`, quiz, `checkout.css`) |
-| `assets/js/` | Scripts do quiz; `landings/` para presells |
-| `includes/site-config.php` | IDs de tracking (override com env: `TIKTOK_PIXEL_ID`, `CLARITY_PROJECT_ID`) |
-| `includes/partials/` | Head, tracking, scripts do quiz, head das landings |
-| `includes/sections/` | HTML reutilizável (quiz, presells) |
-| `checkout/` | Checkout, webhooks, proxy |
-| `ups/` | Páginas de upsell (bundles próprios) |
-| `images/` | Imagens referenciadas pelo quiz |
-
-## Nova landing PHP
-
-1. Cria `includes/sections/minha-landing-main.php` com o markup.
-2. Cria `assets/css/landings/minha-landing.css` e/ou `assets/js/landings/minha-landing.js`.
-3. Adiciona `minha-landing.php` na raiz:
-
-```php
-<?php
-require __DIR__ . '/includes/site-config.php';
-$pageTitle = 'Título';
-$htmlLang = 'pt-PT';
-$extraStylesheets = ['landings/minha-landing.css'];
-?>
-<!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars($htmlLang, ENT_QUOTES, 'UTF-8'); ?>">
-<head>
-<?php require __DIR__ . '/includes/partials/landing-head.php'; ?>
-</head>
-<body class="landing landing--minha">
-<?php require __DIR__ . '/includes/sections/minha-landing-main.php'; ?>
-<script src="<?php echo htmlspecialchars($ASSET_BASE, ENT_QUOTES, 'UTF-8'); ?>/js/landings/minha-landing.js"></script>
-</body>
-</html>
-```
+| `index.html`, `presell1.html`, `presell2.html` | Landings servidas directamente |
+| `assets/css`, `assets/js` | Estilos e scripts |
+| `includes/sections/` | Fragmentos HTML reutilizáveis (podes voltar a gerar páginas a partir daqui) |
+| `checkout/` | `index.php`, `gateway.php`, `create-session.php`, etc. |
+| `ups/` | Upsells |
 
 ## Deploy em subpasta
 
-Se o site não estiver na raiz do domínio, edita `includes/site-config.php` e define `$ASSET_BASE` com o prefixo correcto (ex.: `'meusite/assets'`).
+Ajusta os `href`/`src` relativos ou usa um prefixo comum nas landings se o site não estiver na raiz do domínio.
 
-## Variáveis de ambiente (opcional)
+## Vercel: erro 403 Forbidden
 
-- `TIKTOK_PIXEL_ID` — ID do pixel TikTok
-- `CLARITY_PROJECT_ID` — ID do projeto Microsoft Clarity
+1. **Deployment Protection** — No projeto: *Settings → Deployment Protection*. Se estiver *Standard* / *Vercel Authentication* também em **Production**, visitantes sem login veem 403. Para o domínio público: desactiva para Production ou limita a *Preview* apenas.
+2. **Root Directory** — *Settings → General → Root Directory* deve estar **vazio** (raiz do repo), a menos que o código esteja noutra pasta.
+3. **Build** — *Framework Preset*: **Other**; *Build Command* e *Output Directory* vazios (site estático com `index.html` na raiz).
+4. **Domínio** — Confirma em *Settings → Domains* que o domínio aponta para este projeto e que o deploy de *Production* está *Ready*.
+5. **Firewall / bloqueios** — Em *Security* verifica regras que possam bloquear o teu país ou IP.
 
-Podes definir no painel do hosting ou copiar `.env.example` para `.env` na raiz (carregado automaticamente por `includes/site-config.php`).
+## Variáveis de ambiente (checkout / includes PHP)
+
+Ficheiro `.env` na raiz é lido por `includes/site-config.php` quando usas includes PHP. Para tracking nas landings estáticas, os IDs estão inline no HTML (ou edita os ficheiros).

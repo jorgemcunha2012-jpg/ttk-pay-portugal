@@ -1,2 +1,2 @@
 # Preferir PHP nas entradas principais quando existirem ambos
-DirectoryIndex index.php index.html
+DirectoryIndex index.html index.php

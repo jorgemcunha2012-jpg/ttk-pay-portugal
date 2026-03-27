@@ -85,7 +85,7 @@ if ($method === 'credit_card') {
         header("Location: pagar.php?" . $params); 
         exit();
     } else {
-        header("Location: index.php?erro=" . urlencode("Erro ao gerar pagamento. Tente novamente."));
+        header("Location: ../index.html?erro=" . urlencode("Erro ao gerar pagamento. Tente novamente."));
         exit();
     }
 }

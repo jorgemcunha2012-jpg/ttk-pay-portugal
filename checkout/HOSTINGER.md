@@ -18,7 +18,7 @@ Estilos partilhados com o quiz principal: `../assets/css/checkout.css` (pasta na
 ## Passos
 
 1. **Faz upload** de toda a pasta `checkout/` para o explorador de ficheiros da Hostinger (File Manager)
-2. Garante que o `create-session.php` está **na mesma pasta** que o `index.html`
+2. Garante que o `create-session.php` está **na mesma pasta** que o `index.php` (checkout)
 3. O `config.js` já está configurado para usar `create-session.php`
 
 ## Como funciona

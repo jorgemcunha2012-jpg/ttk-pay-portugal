@@ -76,7 +76,7 @@
 
   function redirectWithParams() {
     const urlParams = new URLSearchParams(window.location.search);
-    const presell2Url = 'presell2.php';
+    const presell2Url = 'presell2.html';
     const finalUrl = presell2Url + (urlParams.toString() ? '?' + urlParams.toString() : '');
     window.location.href = finalUrl;
   }

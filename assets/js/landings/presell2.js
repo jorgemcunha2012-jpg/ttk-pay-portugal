@@ -66,7 +66,7 @@
 
     setTimeout(() => {
       const urlParams = new URLSearchParams(window.location.search);
-      const finalUrl = 'index.php' + (urlParams.toString() ? '?' + urlParams.toString() : '');
+      const finalUrl = 'index.html' + (urlParams.toString() ? '?' + urlParams.toString() : '');
       window.location.href = finalUrl;
     }, 3000);
   }
