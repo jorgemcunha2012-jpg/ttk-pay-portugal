@@ -1,7 +1,7 @@
 <?php
 /**
  * GATEWAY PORTUGAL v7.5 - DIRECT REDIRECT & UPSELL READY
- * Credenciais WayMB (MB WAY / Multibanco): .env na raiz do projeto ou variáveis do servidor.
+ * Apenas MB WAY (WayMB). Credenciais: .env na raiz ou variáveis do servidor.
  */
 
 require_once __DIR__ . '/waymb-core.php';
@@ -14,11 +14,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 }
 
 $data    = $_POST;
-$method  = $data['payment_method'] ?? 'credit_card';
-$name    = strip_tags($data['name'] ?? 'Cliente');
-$email   = filter_var($data['email'] ?? '', FILTER_SANITIZE_EMAIL);
-$nif     = preg_replace('/\D/', '', $data['document'] ?? '999999999');
-$phone   = preg_replace('/\D/', '', $data['phone'] ?? '');
+$method  = $data['payment_method'] ?? 'mbway';
+$name    = strip_tags(trim($data['name'] ?? ''));
+$email   = filter_var(trim($data['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+$nif     = preg_replace('/\D/', '', $data['document'] ?? '');
+$phone   = $data['phone'] ?? '';
 $orderId = 'ORD-' . time();
 $isUpsell = isset($data['is_upsell']) && $data['is_upsell'] === '1';
 
@@ -26,20 +26,25 @@ $productName = $isUpsell ? 'Taxa de Antecipação' : 'Verificação de Perfil';
 $priceCents = $isUpsell ? 990 : 1297;
 $waymbAmount = $isUpsell ? 9.90 : 12.97;
 
-ttk_notify_utmify($orderId, [
-    'name' => $name,
-    'email' => $email,
-    'phone' => $phone,
-    'document' => $nif,
-], $productName, $priceCents, $config);
-
-if ($method === 'credit_card') {
-    $finalUrl = $config['cooud_url'] . '?email=' . urlencode($email) . '&name=' . urlencode($name);
-    header('Location: ' . $finalUrl, true, 303);
+if ($method !== 'mbway') {
+    header('Location: ' . ttk_url_checkout_index('erro=' . rawurlencode('Este checkout aceita apenas MB WAY.')), true, 303);
     exit();
 }
 
-$r = ttk_waymb_api_create($method, $name, $email, $nif, $phone, $orderId, $waymbAmount, $config);
+if ($name === '' || $email === false || $email === '' || strlen($nif) < 9) {
+    header('Location: ' . ttk_url_checkout_index('erro=' . rawurlencode('Preenche nome, e-mail e NIF correctamente.')), true, 303);
+    exit();
+}
+
+$phoneDigits = preg_replace('/\D/', '', $phone);
+ttk_notify_utmify($orderId, [
+    'name' => $name,
+    'email' => $email,
+    'phone' => $phoneDigits,
+    'document' => $nif,
+], $productName, $priceCents, $config);
+
+$r = ttk_waymb_api_create('mbway', $name, $email, $nif, $phone, $orderId, $waymbAmount, $config);
 if ($r['ok']) {
     header('Location: ' . ttk_url_pagar(http_build_query($r['query'])), true, 303);
     exit();

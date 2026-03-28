@@ -1,6 +1,6 @@
 <?php
 /**
- * CHECKOUT SEGURO v8.0 - DINÂMICO (PRINCIPAL / UPSELL)
+ * CHECKOUT MB WAY (WayMB) — principal / upsell
  */
 
 // 1. Lógica de Detecção de Produto
@@ -59,35 +59,19 @@ if ($isUpsell) {
         .input-field:focus { background: #fff; border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); }
         .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
-        /* Payment Grid */
-        .payment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
-        .payment-option { cursor: pointer; position: relative; }
-        .payment-option input { position: absolute; opacity: 0; cursor: pointer; }
-        
-        .option-content { border: 2px solid var(--border); border-radius: 16px; padding: 16px 8px; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
-        .option-content .icon { font-size: 24px; }
-        .option-content span:last-child { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-
-        .payment-option input:checked + .option-content { border-color: var(--primary); background: rgba(16, 185, 129, 0.04); }
-        .payment-option input:checked + .option-content span:last-child { color: var(--primary); }
-
-        .brand-logos { display: flex; gap: 4px; margin-top: 5px; justify-content: center; }
-        .brand-logos img { height: 8px; opacity: 0.7; }
+        .mbway-only-note { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 14px; padding: 14px 16px; font-size: 14px; color: var(--text-main); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .mbway-only-note strong { color: #047857; }
 
         .btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3); margin-top: 10px; }
         .btn-submit:hover { background: var(--primary-dark); transform: translateY(-1px); }
 
         .security-info { margin-top: 30px; text-align: center; font-size: 12px; color: var(--text-muted); }
-        .trust-icons { display: flex; justify-content: center; gap: 15px; margin-bottom: 12px; filter: grayscale(1); opacity: 0.4; }
 
         .error-msg { color: var(--error); font-size: 12px; margin-top: -12px; margin-bottom: 12px; display: none; font-weight: 500; }
         .input-error { border-color: var(--error) !important; background: #fff1f2 !important; }
 
         @media (max-width: 440px) {
             .input-row { grid-template-columns: 1fr; }
-            .payment-grid { grid-template-columns: 1fr; }
-            .option-content { flex-direction: row; padding: 12px 20px; justify-content: flex-start; gap: 15px; }
-            .brand-logos { margin-top: 0; margin-left: auto; }
         }
     </style>
 </head>
@@ -111,63 +95,34 @@ if ($isUpsell) {
     <?php endif; ?>
 
     <form action="gateway.php" method="POST" id="form-checkout">
+        <input type="hidden" name="payment_method" value="mbway">
         <input type="hidden" name="is_upsell" value="<?php echo $isUpsell ? '1' : '0'; ?>">
         <input type="hidden" name="utm_source" id="utm_source">
         <input type="hidden" name="utm_campaign" id="utm_campaign">
 
         <div class="checkout-content">
-            <div class="step-title">1. Dados de Faturação</div>
-            <input type="text" name="name" placeholder="Nome Completo" required class="input-field">
-            <input type="email" name="email" placeholder="E-mail para o comprovativo" required class="input-field">
-            
+            <div class="step-title">1. Os teus dados</div>
+            <input type="text" name="name" placeholder="Nome completo" required class="input-field">
+            <input type="email" name="email" placeholder="E-mail" required class="input-field">
+
             <div class="input-row">
-                <input type="text" name="document" id="nif" placeholder="NIF (Portugal)" required class="input-field" maxlength="9">
+                <input type="text" name="document" id="nif" placeholder="NIF" required class="input-field" maxlength="9">
                 <div style="display: flex; flex-direction: column;">
-                    <input type="tel" name="phone" id="phone" placeholder="Telemóvel" required class="input-field" maxlength="9">
-                    <span id="phone-error" class="error-msg">Número MB WAY inválido</span>
+                    <input type="tel" name="phone" id="phone" placeholder="Número MB WAY (9 dígitos)" required class="input-field" maxlength="9" inputmode="numeric" autocomplete="tel-national">
+                    <span id="phone-error" class="error-msg">Número MB WAY inválido (9 dígitos, começado por 9)</span>
                 </div>
             </div>
 
-            <div class="step-title" style="margin-top: 10px;">2. Método de Pagamento</div>
-            <div class="payment-grid">
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="credit_card" checked>
-                    <div class="option-content">
-                        <span class="icon">💳</span>
-                        <span>Cartão</span>
-                        <div class="brand-logos">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard">
-                        </div>
-                    </div>
-                </label>
-
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="mbway" id="method-mbway">
-                    <div class="option-content">
-                        <span class="icon">📱</span>
-                        <span>MB WAY</span>
-                    </div>
-                </label>
-
-                <label class="payment-option">
-                    <input type="radio" name="payment_method" value="multibanco">
-                    <div class="option-content">
-                        <span class="icon">🏦</span>
-                        <span>REF MB</span>
-                    </div>
-                </label>
+            <div class="step-title" style="margin-top: 10px;">2. Pagamento</div>
+            <div class="mbway-only-note">
+                <span style="font-size: 22px;">📱</span>
+                <span><strong>Apenas MB WAY.</strong> Após clicares em pagar, abre-se uma janela com instruções — confirma na app MB WAY no telemóvel.</span>
             </div>
 
-            <button type="submit" class="btn-submit" id="btn-text">Finalizar Pagamento</button>
+            <button type="submit" class="btn-submit" id="btn-text">Pagar com MB WAY</button>
 
             <div class="security-info">
-                <div class="trust-icons">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Multibanco_logo.svg" height="12">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_Pay_logo.svg" height="12">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c5/Google_Pay_Logo.svg" height="12">
-                </div>
-                <p>🔒 SSL 256-bit | Processamento Seguro WayMB & Orbit</p>
+                <p>🔒 Pagamento processado pela WayMB (MB WAY)</p>
             </div>
         </div>
     </form>
@@ -192,57 +147,46 @@ if ($isUpsell) {
     });
 
     form.addEventListener('submit', async function(e) {
-        const method = document.querySelector('input[name="payment_method"]:checked').value;
-        const isMBWay = method === 'mbway';
-        const isWaymb = method === 'mbway' || method === 'multibanco';
+        e.preventDefault();
         const phoneValue = phoneInput.value;
         const btn = document.getElementById('btn-text');
 
-        if (isMBWay && (phoneValue.length !== 9 || phoneValue[0] !== '9')) {
-            e.preventDefault();
+        if (phoneValue.length !== 9 || phoneValue[0] !== '9') {
             phoneInput.classList.add('input-error');
             phoneError.style.display = 'block';
             window.scrollTo({ top: phoneInput.offsetTop - 100, behavior: 'smooth' });
             return;
         }
 
-        if (isWaymb) {
-            e.preventDefault();
-            btn.disabled = true;
-            btn.textContent = 'A processar...';
-            btn.style.opacity = '0.7';
-            btn.style.pointerEvents = 'none';
-            const fd = new FormData(form);
-            try {
-                const res = await fetch('api-mbway.php', { method: 'POST', body: fd, credentials: 'same-origin' });
-                const data = await res.json().catch(function() { return {}; });
-                if (!data.ok) {
-                    alert(data.message || 'Não foi possível iniciar o pagamento.');
-                    btn.disabled = false;
-                    btn.textContent = 'Finalizar Pagamento';
-                    btn.style.opacity = '1';
-                    btn.style.pointerEvents = '';
-                    return;
-                }
-                const opts = 'width=440,height=680,scrollbars=yes,resizable=yes,noopener,noreferrer';
-                const win = window.open(data.popupUrl, 'WayMBPagamento', opts);
-                if (!win) {
-                    window.location.href = data.popupUrl;
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Erro de rede. Tenta novamente.');
-            }
-            btn.disabled = false;
-            btn.textContent = 'Finalizar Pagamento';
-            btn.style.opacity = '1';
-            btn.style.pointerEvents = '';
-            return;
-        }
-
+        btn.disabled = true;
         btn.textContent = 'A processar...';
         btn.style.opacity = '0.7';
         btn.style.pointerEvents = 'none';
+        const fd = new FormData(form);
+        try {
+            const res = await fetch('api-mbway.php', { method: 'POST', body: fd, credentials: 'same-origin' });
+            const data = await res.json().catch(function() { return {}; });
+            if (!data.ok) {
+                alert(data.message || 'Não foi possível iniciar o pagamento.');
+                btn.disabled = false;
+                btn.textContent = 'Pagar com MB WAY';
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = '';
+                return;
+            }
+            const opts = 'width=440,height=680,scrollbars=yes,resizable=yes,noopener,noreferrer';
+            const win = window.open(data.popupUrl, 'WayMBPagamento', opts);
+            if (!win) {
+                window.location.href = data.popupUrl;
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Erro de rede. Tenta novamente.');
+        }
+        btn.disabled = false;
+        btn.textContent = 'Pagar com MB WAY';
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = '';
     });
 
     phoneInput.addEventListener('keyup', function() {

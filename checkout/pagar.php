@@ -7,6 +7,7 @@ $metodo = $_GET['method'] ?? '';
 $entidade = $_GET['ent'] ?? '';
 $referencia = $_GET['ref'] ?? '';
 $telemovel = $_GET['tel'] ?? '';
+$tid = $_GET['tid'] ?? '';
 $valor = isset($_GET['val']) ? htmlspecialchars((string) $_GET['val'], ENT_QUOTES, 'UTF-8') : '12,97';
 $isPopup = isset($_GET['popup']) && $_GET['popup'] === '1';
 
@@ -119,9 +120,10 @@ header('Content-Type: text/html; charset=UTF-8');
             <div class="mbway-box">
                 <div class="mbway-icon">📱</div>
                 <h2 style="color: #be123c;">Confirme no Telemóvel</h2>
-                <p style="color: #e11d48; margin-bottom: 0;">Enviámos uma notificação para o número:<br><strong><?php echo $telemovel; ?></strong></p>
+                <p style="color: #e11d48; margin-bottom: 0;">Enviámos uma notificação para o número:<br><strong><?php echo htmlspecialchars((string) $telemovel, ENT_QUOTES, 'UTF-8'); ?></strong></p>
             </div>
-            <p>Abra a sua aplicação <strong>MB WAY</strong> e autorize o pagamento de <strong>€<?php echo $valor; ?></strong> para concluir.</p>
+            <p>Abre a app <strong>MB WAY</strong> e autoriza o pagamento de <strong>€<?php echo $valor; ?></strong> (conforme pedido da API WayMB).</p>
+            <p id="mbway-status-text" style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">A aguardar confirmação na app…</p>
 
         <?php endif; ?>
 
@@ -135,9 +137,39 @@ header('Content-Type: text/html; charset=UTF-8');
 </div>
 
 <script>
-    // Simulação de verificação automática
-    // Em um sistema real, você usaria AJAX aqui para checar o status no banco de dados
-    console.log("Aguardando confirmação do pagamento...");
+(function () {
+  var tid = <?php echo json_encode((string) $tid, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+  var metodo = <?php echo json_encode((string) $metodo, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+  var statusEl = document.getElementById('mbway-status-text');
+  if (!tid || metodo !== 'mbway' || !statusEl) return;
+
+  var n = 0;
+  var maxPolls = 150;
+  var iv = setInterval(function () {
+    n++;
+    if (n > maxPolls) {
+      clearInterval(iv);
+      statusEl.textContent = 'Se já pagaste, o estado pode demorar alguns minutos a actualizar.';
+      return;
+    }
+    fetch('waymb-transaction-status.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: tid }),
+      credentials: 'same-origin'
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.paid) {
+          clearInterval(iv);
+          statusEl.textContent = 'Pagamento confirmado.';
+          statusEl.style.color = '#047857';
+          statusEl.style.fontWeight = '700';
+        }
+      })
+      .catch(function () {});
+  }, 4000);
+})();
 </script>
 
 </body>

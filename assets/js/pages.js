@@ -284,52 +284,6 @@ const pages = {
 </div>
   `,
 
-  checkout: `
-    <div class="checkout-page">
-      <div class="page-header">
-        <button class="back-btn checkout-back-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        </button>
-        <h1>Pagamento</h1>
-      </div>
-      <div class="checkout-container">
-        <div class="checkout-header">
-          <h1>Pagamento da Taxa</h1>
-          <div class="amount">€15,97</div>
-        </div>
-        <div class="checkout-content">
-          <div class="checkout-summary">
-            <div class="summary-row">
-              <span>Taxa de verificação:</span>
-              <strong>€15,97</strong>
-            </div>
-            <div class="summary-row total">
-              <span>Total a pagar:</span>
-              <strong>€15,97</strong>
-            </div>
-          </div>
-          <div class="payment-methods-info">
-            <span class="icon">💳</span>
-            <div>
-              <strong>Métodos disponíveis:</strong>
-              <span id="payment-methods-label">Cartão de crédito/débito, Google Pay e Apple Pay</span>
-            </div>
-          </div>
-          <div class="checkout-payment-warning">
-            ⚠️ Os pagamentos por MB Way e Multibanco não são permitidos para a taxa de verificação de identidade, dado que estes métodos comprometem o processo de reembolso automático.
-          </div>
-          <button type="button" class="checkout-btn" id="checkout-btn">
-            Pagar €15,97
-          </button>
-          <div class="checkout-error" id="checkout-error"></div>
-        </div>
-        <div class="checkout-footer">
-          <p>🔒 Pagamento seguro pela Cooud</p>
-          <p>Serás redirecionado para o checkout</p>
-        </div>
-      </div>
-    </div>
-  `
 };
 
 // Current page state
@@ -362,8 +316,6 @@ function showPage(pageName) {
     setupRegistrationPage();
   } else if (pageName === 'video') {
     setupVideoPage();
-  } else if (pageName === 'checkout') {
-    setupCheckoutPage();
   }
 }
 
@@ -459,10 +411,9 @@ function setupRegistrationPage() {
       e.preventDefault();
       // Rastrear InitiateCheckout quando clica em "Pagar Taxa"
       if (typeof trackInitiateCheckout === 'function') {
-        const amt = typeof COOUD_CONFIG !== 'undefined' && COOUD_CONFIG.amount ? COOUD_CONFIG.amount : 15.97;
-        trackInitiateCheckout(amt);
+        trackInitiateCheckout(15.97);
       }
-      // Checkout PHP (WayMB MB WAY / Multibanco + Cooud cartão) — evita fluxo só-Cooud da SPA
+      // Checkout PHP — apenas MB WAY (WayMB)
       const cur = new URLSearchParams(window.location.search);
       const pass = new URLSearchParams();
       ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term'].forEach((k) => {
@@ -472,33 +423,6 @@ function setupRegistrationPage() {
       const q = pass.toString();
       window.location.href = 'checkout/index.php' + (q ? '?' + q : '');
     });
-  }
-}
-
-// Setup event listeners for checkout page
-function setupCheckoutPage() {
-  const backBtn = document.querySelector('.checkout-back-btn');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      showPage('registration');
-    });
-  }
-
-  const checkoutBtn = document.getElementById('checkout-btn');
-  if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (typeof createCheckoutSession === 'function') {
-        createCheckoutSession();
-      } else {
-        console.error('[Checkout] createCheckoutSession não está definido. Inclui checkout/checkout.js após config.js.');
-      }
-    });
-  }
-
-  const methodsLabel = document.getElementById('payment-methods-label');
-  if (methodsLabel && typeof getPaymentMethodsLabel === 'function') {
-    methodsLabel.textContent = getPaymentMethodsLabel();
   }
 }
 
