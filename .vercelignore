@@ -1,0 +1,4 @@
+# A Vercel não executa PHP. Ignorar evita servir ficheiros .php como texto (código exposto).
+# O checkout real deve estar no hosting PHP; no front define TTK_CHECKOUT_PHP_BASE em site-config.js
+checkout/**/*.php
+includes/**/*.php
