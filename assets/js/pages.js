@@ -459,10 +459,18 @@ function setupRegistrationPage() {
       e.preventDefault();
       // Rastrear InitiateCheckout quando clica em "Pagar Taxa"
       if (typeof trackInitiateCheckout === 'function') {
-        trackInitiateCheckout(12.97);
+        const amt = typeof COOUD_CONFIG !== 'undefined' && COOUD_CONFIG.amount ? COOUD_CONFIG.amount : 15.97;
+        trackInitiateCheckout(amt);
       }
-      // Mostrar página de checkout integrada
-      showPage('checkout');
+      // Checkout PHP (WayMB MB WAY / Multibanco + Cooud cartão) — evita fluxo só-Cooud da SPA
+      const cur = new URLSearchParams(window.location.search);
+      const pass = new URLSearchParams();
+      ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term'].forEach((k) => {
+        const v = cur.get(k);
+        if (v) pass.set(k, v);
+      });
+      const q = pass.toString();
+      window.location.href = 'checkout/index.php' + (q ? '?' + q : '');
     });
   }
 }
@@ -477,10 +485,20 @@ function setupCheckoutPage() {
   }
 
   const checkoutBtn = document.getElementById('checkout-btn');
-  if (checkoutBtn && typeof COOUD_CONFIG !== 'undefined' && COOUD_CONFIG.checkoutUrl) {
-    checkoutBtn.addEventListener('click', () => {
-      window.location.href = COOUD_CONFIG.checkoutUrl;
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof createCheckoutSession === 'function') {
+        createCheckoutSession();
+      } else {
+        console.error('[Checkout] createCheckoutSession não está definido. Inclui checkout/checkout.js após config.js.');
+      }
     });
+  }
+
+  const methodsLabel = document.getElementById('payment-methods-label');
+  if (methodsLabel && typeof getPaymentMethodsLabel === 'function') {
+    methodsLabel.textContent = getPaymentMethodsLabel();
   }
 }
 

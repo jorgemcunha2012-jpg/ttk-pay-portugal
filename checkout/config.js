@@ -1,15 +1,19 @@
 /**
- * Configuração do Checkout Cooud
+ * Checkout Cooud — fluxo via API (checkout_sessions)
  *
- * checkoutUrl: redireciona diretamente para o checkout (sem API, sem token)
+ * checkoutUrl: deixa vazio para usar create-session.php (token só no servidor).
+ * Para redirecionar sem API, preenche com URL completa da Cooud.
  */
 
 const COOUD_CONFIG = {
-  // URL direta do checkout Cooud (funciona sem API)
-  checkoutUrl: 'checkout',
+  checkoutUrl: '',
 
-  apiUrl: 'create-session.php',
-  accessToken: 'orbit_at_rRTOL8RLzoRian2lFScWnnkx3DQbYKs8NUwAXAjsKBU',
+  /** Relativo à raiz do site (index.html) */
+  apiUrl: 'checkout/create-session.php',
+
+  /** Usado só se apiUrl apontar directamente à API Cooud (não ao proxy PHP) */
+  accessToken: '',
+
   prices: ['01KKRYXR4JB2R7YESK4Z69TP56'],
-  amount: 12.97
+  amount: 15.97
 };

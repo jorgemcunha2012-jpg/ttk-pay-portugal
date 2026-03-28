@@ -12,6 +12,10 @@ Funil estático na raiz (`index.html`, `presell*.html`), checkout e APIs em `che
 - **Só funil:** qualquer hosting estático.
 - **Checkout Cooud / WayMB:** PHP no servidor para `checkout/*.php`.
 
+### WayMB (MB WAY no `gateway.php`)
+
+Na **raiz** do projecto, ficheiro `.env` (usa `.env.example` como modelo): `WAYMB_CLIENT_ID`, `WAYMB_CLIENT_SECRET`, `WAYMB_ACCOUNT_EMAIL` (email da conta WayMB). Sem `WAYMB_ACCOUNT_EMAIL`, o fluxo MB WAY redirecciona com erro. O `gateway.php` também lê estas variáveis se as definires no painel do hosting.
+
 ## Estrutura
 
 | Ficheiro / pasta | Função |

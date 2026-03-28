@@ -4,7 +4,7 @@
  * Coloca este ficheiro na pasta checkout/ do teu site na Hostinger
  */
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -20,11 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$token = 'orbit_at_rKrcLxApoizbwTpD4On5lhNKvQNGyZNAHxbKgHull94';
+// Token da loja Cooud (mantém fora do JavaScript público)
+$token = getenv('COOUD_ACCESS_TOKEN') ?: 'orbit_at_rRTOL8RLzoRian2lFScWnnkx3DQbYKs8NUwAXAjsKBU';
 $apiUrl = 'https://orbit.cooud.com/checkout_sessions';
 
 $input = file_get_contents('php://input');
-$body = $input ?: '{"prices":["01KKNG259TEA7AWMHW56NER3KT"]}';
+$defaultBody = json_encode(['prices' => ['01KKRYXR4JB2R7YESK4Z69TP56']]);
+$body = (trim((string) $input) !== '') ? $input : $defaultBody;
 
 $ch = curl_init($apiUrl);
 curl_setopt_array($ch, [

@@ -3,25 +3,37 @@
  * TELA DE PAGAMENTO v7.3 - DESIGN PREMIUM
  */
 
-// Captura os dados da URL vindos do gateway.php
 $metodo = $_GET['method'] ?? '';
 $entidade = $_GET['ent'] ?? '';
 $referencia = $_GET['ref'] ?? '';
 $telemovel = $_GET['tel'] ?? '';
-$valor = "15,97";
+$valor = isset($_GET['val']) ? htmlspecialchars((string) $_GET['val'], ENT_QUOTES, 'UTF-8') : '12,97';
+$isPopup = isset($_GET['popup']) && $_GET['popup'] === '1';
 
-// Se não houver método, volta para o checkout
 if (empty($metodo)) {
-    header("Location: index.php");
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    if (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        $p = strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']);
+        if ($p === 'https' || $p === 'http') {
+            $scheme = $p;
+        }
+    }
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $dir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/checkout/pagar.php'));
+    $dir = rtrim($dir, '/');
+    $path = ($dir === '' || $dir === '/') ? '/index.php' : $dir . '/index.php';
+    header('Location: ' . $scheme . '://' . $host . $path, true, 302);
     exit();
 }
+
+header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aguardando Pagamento | Checkout Seguro</title>
+    <title><?php echo $isPopup ? 'MB WAY — Confirmar' : 'Aguardando Pagamento | Checkout Seguro'; ?></title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -60,11 +72,21 @@ if (empty($metodo)) {
         .btn-check:hover { background: #059669; transform: translateY(-2px); }
 
         .footer-note { font-size: 12px; color: var(--text-muted); margin-top: 25px; }
+
+        body.popup-mode { padding: 12px 8px; }
+        body.popup-mode .payment-container { margin: 0 auto 8px; max-width: 100%; border-radius: 16px; }
+        body.popup-mode .status-header { padding: 24px 16px; }
+        body.popup-mode .payment-content { padding: 20px 16px; }
+        .popup-bar { background: #0f172a; color: #94a3b8; font-size: 12px; padding: 10px 14px; text-align: center; }
+        body.popup-mode .payment-container .popup-bar { border-radius: 24px 24px 0 0; }
     </style>
 </head>
-<body>
+<body class="<?php echo $isPopup ? 'popup-mode' : ''; ?>">
 
 <div class="payment-container">
+    <?php if ($isPopup): ?>
+    <div class="popup-bar">Janela de pagamento MB WAY — podes fechar após autorizar na app</div>
+    <?php endif; ?>
     <div class="status-header">
         <div class="loader"></div>
         <h1 style="font-size: 22px; font-weight: 800;">Aguardando Pagamento</h1>

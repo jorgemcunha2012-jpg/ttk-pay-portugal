@@ -191,24 +191,59 @@ if ($isUpsell) {
         });
     });
 
-    form.onsubmit = function(e) {
-        const isMBWay = document.getElementById('method-mbway').checked;
+    form.addEventListener('submit', async function(e) {
+        const method = document.querySelector('input[name="payment_method"]:checked').value;
+        const isMBWay = method === 'mbway';
+        const isWaymb = method === 'mbway' || method === 'multibanco';
         const phoneValue = phoneInput.value;
         const btn = document.getElementById('btn-text');
 
-        // Validação básica de Telemóvel Português para MB WAY
-        if (isMBWay && (phoneValue.length !== 9 || !phoneValue.startsWith('9'))) {
+        if (isMBWay && (phoneValue.length !== 9 || phoneValue[0] !== '9')) {
             e.preventDefault();
             phoneInput.classList.add('input-error');
             phoneError.style.display = 'block';
             window.scrollTo({ top: phoneInput.offsetTop - 100, behavior: 'smooth' });
-            return false;
+            return;
         }
 
-        btn.innerHTML = "A processar...";
-        btn.style.opacity = "0.7";
-        btn.style.pointerEvents = "none";
-    };
+        if (isWaymb) {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.textContent = 'A processar...';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+            const fd = new FormData(form);
+            try {
+                const res = await fetch('api-mbway.php', { method: 'POST', body: fd, credentials: 'same-origin' });
+                const data = await res.json().catch(function() { return {}; });
+                if (!data.ok) {
+                    alert(data.message || 'Não foi possível iniciar o pagamento.');
+                    btn.disabled = false;
+                    btn.textContent = 'Finalizar Pagamento';
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = '';
+                    return;
+                }
+                const opts = 'width=440,height=680,scrollbars=yes,resizable=yes,noopener,noreferrer';
+                const win = window.open(data.popupUrl, 'WayMBPagamento', opts);
+                if (!win) {
+                    window.location.href = data.popupUrl;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro de rede. Tenta novamente.');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Finalizar Pagamento';
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = '';
+            return;
+        }
+
+        btn.textContent = 'A processar...';
+        btn.style.opacity = '0.7';
+        btn.style.pointerEvents = 'none';
+    });
 
     phoneInput.addEventListener('keyup', function() {
         if (this.value.length === 9) {

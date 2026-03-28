@@ -9,41 +9,48 @@ async function createCheckoutSession() {
   const btn = document.getElementById('checkout-btn');
   const errorEl = document.getElementById('checkout-error');
 
-  // Redirecionamento direto (sem API)
-  if (COOUD_CONFIG.checkoutUrl) {
+  if (COOUD_CONFIG.checkoutUrl && String(COOUD_CONFIG.checkoutUrl).trim() !== '') {
     window.location.href = COOUD_CONFIG.checkoutUrl;
     return;
   }
 
-  if (!COOUD_CONFIG.accessToken || COOUD_CONFIG.accessToken.includes('COLOQUE')) {
-    showError('Configura o access token no ficheiro config.js');
-    return;
+  const apiUrl = COOUD_CONFIG.apiUrl || '';
+  const usePhpProxy = apiUrl.indexOf('create-session.php') !== -1;
+
+  if (!usePhpProxy) {
+    if (!COOUD_CONFIG.accessToken || COOUD_CONFIG.accessToken.includes('COLOQUE')) {
+      showError('Configura o access token no ficheiro config.js');
+      return;
+    }
   }
 
-  if (!COOUD_CONFIG.prices.length || COOUD_CONFIG.prices[0].includes('COLOQUE')) {
+  if (!COOUD_CONFIG.prices || !COOUD_CONFIG.prices.length || String(COOUD_CONFIG.prices[0]).includes('COLOQUE')) {
     showError('Configura os IDs das ofertas no ficheiro config.js');
     return;
   }
+
+  if (!btn) return;
 
   btn.disabled = true;
   btn.textContent = 'A processar...';
   if (errorEl) errorEl.textContent = '';
 
   try {
-    // API Cooud só aceita: prices, user_id, customer_email (additionalProperties: false)
     const prices = Array.isArray(COOUD_CONFIG.prices) ? COOUD_CONFIG.prices : [COOUD_CONFIG.prices];
     const body = { prices };
 
     const bodyString = JSON.stringify(body);
     console.log('[Cooud] Request body:', bodyString);
 
-    const response = await fetch(COOUD_CONFIG.apiUrl, {
+    const headers = { 'Content-Type': 'application/json' };
+    if (!usePhpProxy) {
+      headers['Authorization'] = 'Bearer ' + COOUD_CONFIG.accessToken;
+      headers['X-Store-Access-Token'] = COOUD_CONFIG.accessToken;
+    }
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${COOUD_CONFIG.accessToken}`,
-        'X-Store-Access-Token': COOUD_CONFIG.accessToken
-      },
+      headers: headers,
       body: bodyString
     });
 
@@ -70,7 +77,13 @@ async function createCheckoutSession() {
     }
 
     if (data.url) {
-      window.location.href = data.url;
+      let target = data.url;
+      try {
+        target = new URL(data.url, window.location.href).href;
+      } catch (e) {
+        /* mantém string original */
+      }
+      window.location.assign(target);
     } else {
       throw new Error('A API não devolveu a URL do checkout.');
     }
@@ -111,25 +124,13 @@ function getPaymentMethodsLabel() {
   return 'Cartão de crédito/débito, Google Pay e Apple Pay';
 }
 
-// Inicializar quando o DOM estiver pronto
+/**
+ * O botão #checkout-btn é injectado pelo SPA (pages.js); o clique é ligado em setupCheckoutPage().
+ * Aqui só deixamos helpers disponíveis globalmente.
+ */
 document.addEventListener('DOMContentLoaded', () => {
   const methodsLabel = document.getElementById('payment-methods-label');
-  if (methodsLabel) {
+  if (methodsLabel && typeof getPaymentMethodsLabel === 'function') {
     methodsLabel.textContent = getPaymentMethodsLabel();
-  }
-
-  const btn = document.getElementById('checkout-btn');
-  if (btn) {
-    btn.addEventListener('click', createCheckoutSession);
-  }
-
-  // Rastrear InitiateCheckout no TikTok Pixel
-  const amount = typeof COOUD_CONFIG !== 'undefined' ? COOUD_CONFIG.amount : 12.97;
-  if (typeof ttq !== 'undefined' && typeof ttq.track === 'function') {
-    try {
-      ttq.track('InitiateCheckout', { value: amount, currency: 'EUR' });
-    } catch (e) {
-      console.warn('[TikTok] InitiateCheckout:', e);
-    }
   }
 });
