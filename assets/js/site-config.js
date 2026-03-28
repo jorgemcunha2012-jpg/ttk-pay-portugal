@@ -1,11 +1,11 @@
 /**
- * Checkout MB WAY (PHP + WayMB) — URL do servidor onde /checkout/ corre com PHP.
+ * URL base onde está o checkout (HTML + /api na Vercel ou mesmo domínio).
  *
- * - Vazio: usa caminho relativo checkout/index.php (funciona se o quiz e o PHP
- *   estiverem no MESMO domínio, ex.: só Hostinger).
- * - Preenchido: redireciona para esse domínio (obrigatório na Vercel / front estático).
+ * - Vazio: caminho relativo `checkout/index.html` (quiz e checkout no mesmo site).
+ * - Preenchido: redireciona para esse URL (ex.: funil num domínio, checkout noutro).
  *
- * Exemplo: window.TTK_CHECKOUT_PHP_BASE = 'https://omeudominio.pt';
- * (sem barra no fim; pode incluir subpasta: https://dominio.pt/meuprojeto)
+ * Preferir: window.TTK_CHECKOUT_BASE_URL = 'https://checkout.teudominio.pt';
+ * Legado: TTK_CHECKOUT_PHP_BASE (mesmo efeito).
  */
+window.TTK_CHECKOUT_BASE_URL = '';
 window.TTK_CHECKOUT_PHP_BASE = '';

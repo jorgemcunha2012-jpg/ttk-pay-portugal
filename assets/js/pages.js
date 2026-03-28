@@ -413,7 +413,7 @@ function setupRegistrationPage() {
       if (typeof trackInitiateCheckout === 'function') {
         trackInitiateCheckout(15.97);
       }
-      // Checkout PHP — apenas MB WAY (WayMB). Na Vercel o PHP não corre: usa TTK_CHECKOUT_PHP_BASE.
+      // Checkout MB WAY (WayMB): HTML estático + APIs Node em /api/* (Vercel). Opcional: TTK_CHECKOUT_BASE_URL se o funil estiver noutro domínio.
       const cur = new URLSearchParams(window.location.search);
       const pass = new URLSearchParams();
       ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term'].forEach((k) => {
@@ -421,19 +421,13 @@ function setupRegistrationPage() {
         if (v) pass.set(k, v);
       });
       const q = pass.toString();
-      const path = 'checkout/index.php' + (q ? '?' + q : '');
-      let base = typeof window.TTK_CHECKOUT_PHP_BASE === 'string' ? window.TTK_CHECKOUT_PHP_BASE.trim().replace(/\/$/, '') : '';
-      const host = (window.location.hostname || '').toLowerCase();
-      const onVercel = host.endsWith('.vercel.app');
-      if (!base && onVercel) {
-        window.alert(
-          'O pagamento MB WAY precisa de servidor PHP (não disponível neste domínio Vercel).\n\n' +
-            '1) Coloca os ficheiros /checkout/*.php na Hostinger (ou outro PHP).\n' +
-            '2) Em assets/js/site-config.js define TTK_CHECKOUT_PHP_BASE com esse URL (https://...).\n' +
-            '3) Volta a fazer deploy na Vercel.'
-        );
-        return;
-      }
+      const path = 'checkout/index.html' + (q ? '?' + q : '');
+      let base =
+        typeof window.TTK_CHECKOUT_BASE_URL === 'string'
+          ? window.TTK_CHECKOUT_BASE_URL.trim().replace(/\/$/, '')
+          : typeof window.TTK_CHECKOUT_PHP_BASE === 'string'
+            ? window.TTK_CHECKOUT_PHP_BASE.trim().replace(/\/$/, '')
+            : '';
       window.location.href = base ? base + '/' + path : path;
     });
   }

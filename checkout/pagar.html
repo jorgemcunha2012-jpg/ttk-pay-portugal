@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aguardando Pagamento | MB WAY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #10b981;
+      --bg: #f8fafc;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); padding: 20px 10px; }
+    .payment-container { max-width: 450px; margin: 40px auto; background: white; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); border: 1px solid var(--border); overflow: hidden; text-align: center; }
+    .status-header { background: #1e293b; padding: 40px 24px; color: white; }
+    .loader { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .payment-content { padding: 32px 24px; }
+    h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    p { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+    .mbway-box { background: #fff1f2; border: 2px solid #fda4af; border-radius: 16px; padding: 25px; margin-bottom: 20px; }
+    .mbway-icon { font-size: 40px; margin-bottom: 15px; }
+    .btn-check { display: block; width: 100%; background: var(--primary); color: white; text-decoration: none; padding: 18px; border-radius: 16px; font-weight: 700; margin-top: 10px; transition: all 0.2s; }
+    .btn-check:hover { background: #059669; transform: translateY(-2px); }
+    .footer-note { font-size: 12px; color: var(--text-muted); margin-top: 25px; }
+    body.popup-mode { padding: 12px 8px; }
+    body.popup-mode .payment-container { margin: 0 auto 8px; max-width: 100%; border-radius: 16px; }
+    body.popup-mode .status-header { padding: 24px 16px; }
+    body.popup-mode .payment-content { padding: 20px 16px; }
+    .popup-bar { background: #0f172a; color: #94a3b8; font-size: 12px; padding: 10px 14px; text-align: center; }
+    body.popup-mode .payment-container .popup-bar { border-radius: 24px 24px 0 0; }
+  </style>
+</head>
+<body>
+
+<div class="payment-container" id="root-container">
+  <div class="popup-bar" id="popup-bar" style="display: none;">Janela de pagamento MB WAY — podes fechar após autorizar na app</div>
+  <div class="status-header">
+    <div class="loader"></div>
+    <h1 style="font-size: 22px; font-weight: 800;">Aguardando Pagamento</h1>
+    <p style="color: rgba(255,255,255,0.6); margin-bottom: 0;">A tua encomenda será libertada após confirmação.</p>
+  </div>
+  <div class="payment-content" id="content-area">
+    <p id="missing-method" style="display: none;">Redirecionamento…</p>
+    <div id="mbway-block" style="display: none;">
+      <div class="mbway-box">
+        <div class="mbway-icon">📱</div>
+        <h2 style="color: #be123c;">Confirma no telemóvel</h2>
+        <p style="color: #e11d48; margin-bottom: 0;">Notificação enviada para:<br><strong id="tel-display"></strong></p>
+      </div>
+      <p>Abre a app <strong>MB WAY</strong> e autoriza <strong id="val-display"></strong>.</p>
+      <p id="mbway-status-text" style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">A aguardar confirmação na app…</p>
+    </div>
+    <a href="/index.html" class="btn-check" id="btn-done">Já fiz o pagamento</a>
+    <div class="footer-note">🛡️ Pagamento seguro · WayMB</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var metodo = params.get('method') || '';
+  var tid = params.get('tid') || '';
+  var tel = params.get('tel') || '';
+  var val = params.get('val') || '12,97';
+  var popup = params.get('popup') === '1';
+
+  if (!metodo) {
+    window.location.replace('index.html');
+    return;
+  }
+
+  if (popup) {
+    document.body.classList.add('popup-mode');
+    document.getElementById('popup-bar').style.display = 'block';
+  }
+
+  if (metodo === 'mbway') {
+    document.getElementById('mbway-block').style.display = 'block';
+    (function () {
+      var d = String(tel).replace(/\D/g, '');
+      var show = d.length === 12 && d.indexOf('351') === 0 ? d.slice(3) : tel;
+      document.getElementById('tel-display').textContent = show;
+    })();
+    document.getElementById('val-display').textContent = '€' + val;
+
+    var statusEl = document.getElementById('mbway-status-text');
+    if (tid && statusEl) {
+      var n = 0;
+      var maxPolls = 150;
+      var iv = setInterval(function () {
+        n++;
+        if (n > maxPolls) {
+          clearInterval(iv);
+          statusEl.textContent = 'Se já pagaste, o estado pode demorar alguns minutos a actualizar.';
+          return;
+        }
+        fetch('/api/mbway-transaction-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: tid }),
+          credentials: 'same-origin'
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            if (j && j.paid) {
+              clearInterval(iv);
+              statusEl.textContent = 'Pagamento confirmado.';
+              statusEl.style.color = '#047857';
+              statusEl.style.fontWeight = '700';
+            }
+          })
+          .catch(function () {});
+      }, 4000);
+    }
+  } else {
+    document.getElementById('missing-method').style.display = 'block';
+    document.getElementById('missing-method').textContent = 'Método não suportado nesta página.';
+  }
+})();
+</script>
+</body>
+</html>

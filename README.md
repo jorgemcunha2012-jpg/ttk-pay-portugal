@@ -1,6 +1,6 @@
 # TikTok Pay Portugal — base do projeto
 
-Funil estático na raiz (`index.html`, `presell*.html`), checkout e APIs em `checkout/*.php`, upsells em `ups/`.
+Funil estático na raiz (`index.html`, `presell*.html`), checkout MB WAY em `checkout/*.html` com APIs Node em `api/` (compatível com Vercel). Ficheiros `checkout/*.php` mantêm-se para hosting com PHP.
 
 ## Entrada principal
 
@@ -10,7 +10,8 @@ Funil estático na raiz (`index.html`, `presell*.html`), checkout e APIs em `che
 ## Requisitos
 
 - **Só funil:** qualquer hosting estático.
-- **Checkout Cooud / WayMB:** PHP no servidor para `checkout/*.php`.
+- **Checkout WayMB na Vercel:** define as variáveis em *Settings → Environment Variables* (ver `.env.example`). Endpoints: `POST /api/mbway-create`, `POST /api/mbway-transaction-status`, `POST /api/webhook-waymb` (URL de callback na WayMB).
+- **Checkout PHP (legado):** `checkout/*.php` em servidor com PHP.
 
 ### WayMB (MB WAY no `gateway.php`)
 
@@ -23,7 +24,9 @@ Na **raiz** do projecto, ficheiro `.env` (usa `.env.example` como modelo): `WAYM
 | `index.html`, `presell1.html`, `presell2.html` | Landings servidas directamente |
 | `assets/css`, `assets/js` | Estilos e scripts |
 | `includes/sections/` | Fragmentos HTML reutilizáveis (podes voltar a gerar páginas a partir daqui) |
-| `checkout/` | `index.php`, `gateway.php`, `create-session.php`, etc. |
+| `checkout/` | `index.html`, `pagar.html` (Vercel/JS); `*.php` (hosting PHP) |
+| `api/` | Funções serverless: MB WAY + webhook WayMB |
+| `lib/` | Lógica partilhada Node (`waymb-server.js`) |
 | `ups/` | Upsells |
 
 ## Deploy em subpasta
